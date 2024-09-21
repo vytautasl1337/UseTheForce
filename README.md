@@ -2,11 +2,11 @@
 
 ---
 
-Scripts to analyze behavioral data from the grip force/reward task used in Precision-BCT and ADAPT-PD projects. The pipeline is wrapped in a GUI, allowing researchers to analyze their data with little effort. There are two main flows of the pipeline:
+Scripts to analyze behavioral data from the grip force/reward task used in Precision-BCT, ADAPT-PD (and maybe future?) projects. The pipeline is wrapped in a GUI, allowing to analyze one's data with little effort. There are two main flows of the pipeline:
 
-- Single subject outcome visualization (in development, incomplete) - allows to visualize grip responses in various conditions. At the moment mainly used for data quality checks.
+- Single subject outcome visualization (incomplete, but most likely abandoned) - allows to visualize grip responses in various conditions. At the moment mainly used for data quality checks.
 
-- Group analysis (in development) - outputs a table of detailed trial performance and estimations of relevant grip curve metrics - reaction times, maximum grip values etc. The output can be easily read by any statistical software.
+- Group analysis - outputs a table of detailed trial performance and estimations of relevant grip curve metrics - reaction times, maximum grip values etc. The output can be easily read by any statistical software.
 
 ---
 
@@ -14,7 +14,7 @@ Scripts to analyze behavioral data from the grip force/reward task used in Preci
 
 __Getting the scripts__ :arrow_down:
 
-So... you decided to enter the world of pain and start analyzing your data. Originally, intended to sync two local repositories, but it proved to be more complicated than it was worth it. You can now get the latest scripts by using the following commands:
+Originally, intended to sync two local repositories, but it proved to be more complicated than it was worth it. You can now get the latest scripts by using the following commands:
 
 Navigate to the directory where you will store the scripts:
 
@@ -25,7 +25,7 @@ If you are here for the first time:
     // Clone the code from GitLab //
     git clone https://git.drcmr.dk/vytautasl/behavioral-data-analysis-toolbox.git
 
-If you want to update the scripts to enjoy the latest new features:
+If you have already had UseTheForce and want to update the scripts to enjoy the latest new features:
 
     // Go to the directory where you store the scripts //
     git pull origin main
@@ -105,6 +105,7 @@ We can now activate this environment and verify that the python command now corr
     Python 3.8.5
 
 
+
  ## IDE :computer:
 
 To open the scripts you will need an IDE. If you decide to use VSCode, simply type 'code' into the command window. As soon as VSCode opens, you must take care of a few things (which should be a one time job):
@@ -128,15 +129,16 @@ Press Select Interpreter ->
 Select your virtual environment (in my case - Python 3.8.5 ('force')
 ```
 
-__Recreate environment using requirements.yml__ :page_with_curl:
+This action can also be performded using the terminal if you prefer.
 
-Toolbox comes with requirements.yml file that lists all required packages to successfully run the scripts. If you had your environment set up before, you most likely already have all the required packages. You probably also now have your conda environment to hold all the python libraries.
+__Recreate environment using requirements.txt__ :page_with_curl:
+
+Toolbox comes with requirements.txt file that lists all required packages to successfully run the scripts. If you had your environment set up before, you most likely already have all the required packages. You probably also now have your conda environment to hold all the python libraries.
+
+To install the dependencies, simply run
 
 ```
-# Re-create the environment
-$ conda env create --file requirements.yml
-# Activate new environment
-$ conda activate your_environment_name
+pip install -r /path/to/requirements.txt
 ``` 
 
 The packages will be installed into your current environment
@@ -150,13 +152,13 @@ The packages will be installed into your current environment
 
 
 ### Group analysis 
-__Preparations__
+__Input folder preparations__
 
 For the group analysis you will need to prepare a couple of things:
 
-+ All the subject folders (X***** folders) should be moved to an analysis folder (you can create it anywhere and call it whatever) - this folder will also hold the analysis table and other outputs - inside a new 'Results' folder.
++ All the subject folders (X***** folders) should be moved to an analysis folder (you can create it anywhere and call it whatever) - this folder will also hold the analysis table and other outputs - the scipt will generate a new 'Results' folder once the analysis is done.
 
-+ Create a single .xlsx file with any name. Every line should be dedicated subject. The toolbox will also look for a few columns. It should look something like this:
++ Create a single .xlsx file with any name. Place it next to the subject folders. Every line in this file should be dedicated to a subject. It should look something like this:
 
 |id|data|delay|gender|age|group|calibration|
 |:----|:----|:----|:----|:----|:----|:----|
@@ -165,27 +167,95 @@ For the group analysis you will need to prepare a couple of things:
 |X*****|1|60|Female|26|1|MRI|
 |X*****|1|60|Male |29|3|BEH|
 
-These 7 columns are required. You can add additional ones, specifying new parameters for each subject - like disease onset, handedness score etc. All them will be taken and present in the final output.
+These 7 columns are required. You can add additional ones, specifying new parameters for each subject - like disease onset, handedness score etc. All the additional measures will be appended to the final output.
 
 + **id** - specify your subject identifier.
 + **data** - should data be analyzed. 1 for yes. All other values will force the analysis to exclude the subject on that row.
-+ **delay** - in our MRI experiment we had a projector delay of 60 ms. To account for that, 'delay' rows should hold a number in miliseconds of how much of delay to add for participant.
-+ **gender** - gender of the participant
-+ **age** - age of the participant
-+ **group** - subject group (healthy, patient etc., your job is to remember which number is which)
++ **delay** - in our experiment we had a projector delay of 60 ms. To account for that, 'delay' rows should hold a number in miliseconds of how much of delay to add for each participant. Otherwise, place 0.
++ **gender** - gender of the participant.
++ **age** - age of the participant.
++ **group** - subject group (healthy, patient etc., your job is to remember which number is which).
 + **calibration** - to transform the data into Newton format, each subject must have a label from one of the following: MRI,BEH or EEG. Depending on your experiment, insert an appropriate label for each subject to adjust for specific devices.
+
+The input folder should look similar to this:
+
+    ├── excel_file_mentioned_above.xlsx
+    ├── sub-01
+    │   ├── Questionnaires
+    │   │   ├── EHI_Sub_01_.csv
+    │   ├── Rest
+    │   │   └── source_data
+    │   └── Task
+    │       └── source_data
+    │           ├── data_task_sub-01_run_1.mat
+    │           ├── data_task_sub-01_run_1.txt
+    │           ├── data_task_sub-01_run_2.mat
+    │           ├── data_task_sub-01_run_2.txt
+    │           ├── data_task_sub-01_run_3.mat
+    │           ├── data_task_sub-01_run_3.txt
+    │           ├── data_task_sub-01_run_4.mat
+    │           ├── data_task_sub-01_run_4.txt
+    │           └── ExpInfo_task_sub-01.mat
+    └── sub-02
+        ├── Questionnaires
+        │   ├── EHI_Sub_01_.csv
+        ├── Rest
+        │   └── source_data
+        └── Task
+            └── source_data
+                ├── data_task_sub-02_run_1.mat
+                ├── data_task_sub-02_run_1.txt
+                ├── data_task_sub-02_run_2.mat
+                ├── data_task_sub-02_run_2.txt
+                ├── data_task_sub-02_run_3.mat
+                ├── data_task_sub-02_run_3.txt
+                ├── data_task_sub-02_run_4.mat
+                ├── data_task_sub-02_run_4.txt
+                └── ExpInfo_task_sub-02.mat
+
+Always to keep in mind:
+
+    1. Make sure the paths to the .mat or .txt files are correct.
+    2. Do not allow any duplicate files of an experiment run as it can lead to unforeseen outputs.
+    3. Multiple ExpInfo files for a subject are allowed, but keep in mind UseTheForce is not selective - it will pick the first ExpInfo file it encounters, so if that file does not hold the correct information, it can lead to wrong estimates.
+
 
 
 __Run the analysis__
 
 If you completed the steps above, it should simply work by running UseTheForce.py file. When the GUI opens, press 'Load group', navigate to your analysis folder that contains all subject folders and a single .xlsx file, and the analysis should start. Depending on the number of runs and subjects, it might take a while.
 
+__Preprocessing__
+
+The preprocessing was done following (Le Bouc et al., 2016)
+
+    The events of each task run were analyzed separately. The grip device data were non-uniformly sampled and hence interpolated to 120 Hz. Each event was baseline corrected and low-pass filtered at 15 Hz using a zero-phase second-order Butterworth filter... (Labanauskas V. et al., manuscript)
+
+
 ## Output
-The output can be found inside your subjects' folder. The toolbox created a separate Results folder. The analysis run will create a folder 'Group_output' including the analysis time. Inside you will find subject specific pdf files, where you can inspect subject responses (recommended). 
+The output can be found inside your data folder, inside folder Results. Here is an example tree:
 
-The data for analysis is stored inside behavioral_group_output.xlsx file. Each row is a single recorded trial.
+    ├─ behavioral_group_output.xlsx
+    ├── grips.mat
+    ├── slopes.mat
+    ├── sub-01
+    │   ├── force_preprocessed.mat
+    │   ├── force_preprocessed_newton.mat
+    │   ├── raw_force.mat
+    │   ├── slope_preprocessed.mat
+    │   ├── slope_preprocessed_newton.mat
+    │   └── sub-01_responses.pdf
+    ├── sub-02
+    │   ├── force_preprocessed.mat
+    │   ├── force_preprocessed_newton.mat
+    │   ├── raw_force.mat
+    │   ├── slope_preprocessed.mat
+    │   ├── slope_preprocessed_newton.mat
+    │   └── sub-02_responses.pdf
 
-The headings:
+The main output of the analysis is stored inside behavioral_group_output.xlsx file. Each row is a single recorded trial.
+
+The headers of behavioral_group_output.xlsx:
 + **id** - subject id	
 + **delay** - what time delay was applied	
 + **group** - subject group	
@@ -203,18 +273,19 @@ The headings:
 + **RewardReceived** - money won or lost in the trial	
 + **SymbolTarget** - action cue (-1 - 'left go', 1 - 'right go', 0 - 'nogo')	
 + **GripResponse** - participant response to action cue	(-1 - 'left go', 1 - 'right go', 0 - 'nogo')	
-+ **Correct** - was the trial registered as correct? (1 - yes, 0 - no; participants were able to correct incorrect responses inside response window)	
-+ **Mirror** - was the other hand pressed? (1 - yes, 0 - no; responses had to exceed the 30 % threshold) 	
-+ **RT_init** - reaction time at the response onset, s		
++ **Correct** - was the trial registered as correct? (1 - yes, 0 - no; participants were allowed to correct their incorrect responses inside the response window)	
++ **Mirror** - was the other hand pressed? (1 - yes, 0 - no; responses had to exceed the 30 % threshold). Confirm in pdf files. 	
++ **RT_init** - reaction time at the response onset, s. RT_init was measured by detecting 5 consecutive increases in force that also exceed a hand threshold, then tracing back the same number of data points from where both conditions are met to determine the reaction time	
 + **RT_acc** - reaction time at maximum acceleration, s		
-+ **RT_knee** - reaction time as calculated by kneed algorithm, s	
-+ **RiseTime** - response increase duration from 10% to 90%, s		
-+ **FallTime** - response decrease duration from 90% to 10%, s	
++ **RT_99** - reaction time at 99% of peak, s. It was calculated by detecting the largest peak in the data, then calculating the time to the onset of the peak at 99% of its relative height using scipy.signal.find_peaks
++ **RT_95** - reaction time at 95% of peak, s. It was calculated by detecting the largest peak in the data, then calculating the time to the onset of the peak at 95% of its relative height using scipy.signal.find_peaks
++ **RiseTime** - response increase duration from 10% to 90% of the whole force curve, s		
++ **FallTime** - response decrease duration from 90% to 10% of the whole force curve, s	
 + **MaxGrip** - maximum grip, a.u.	
 + **MaxGrip_Norm** - maximum grip, a.u.	(normalized data)
 + **MaxGrip_New** - maximum grip, Newtons.	
 + **MaxTime** - maximum grip time from stimulus onset, s	
-+ **Slope** - maximum response slope, a.u./s	
++ **Slope** - maximum response slope, a.u./s. Calculated as the first time derivative.	
 + **Slope_Norm** - maximum response slope, a.u./s (normalized data)		
 + **Slope_New**	- maximum response slope, Newton/s
 + **DeSlope** - maximum slope on signal decrease, a.u./s	
@@ -247,5 +318,22 @@ The headings:
 + **AucANTright** - right hand area under the curve during anticipation, a.u	
 + **AucANTright_Norm** - right hand area under the curve during anticipation, a.u (normalized data)	
 
-Additionally, the file includes other information, which (if) was provided in the analysis xlsx file.
+Additionally, if in the input .xlsx file you have added other columns, such as questionnaire measures, they are appended at the end of these columns.
 
+Other files:
+
++ **grips.mat** - contains preprocessed force measures of correct grips (output) and time measures to align the data (time) The data is vertically stacked, but can be mapped to specific trials or groups, by filtering behavioral_group_output.xlsx excluding NoGo, incorrect and mirror trials. Intended for presentations.
+
++ **slopes.mat** - contains preprocessed slope measures of correct grips (output) and time measures to align the data (time) The data is vertically stacked, but can be mapped to specific trials or groups, by filtering behavioral_group_output.xlsx excluding NoGo, incorrect and mirror trials. Intended for presentations.
+
++ **raw_force.mat** - contains raw force measures of each trial (from the ITI onset to the reward onset). Each trial is stored. The data is separated into left and right hands, as well as the time measure (unadjusted).
+
++ **force_preprocessed.mat** - preprocessed force data (from the ITI onset to the reward onset). Each trial is stored. The data is separated into left and right hands, as well as the time measure (unadjusted).
+
++ **force_preprocessed_newton.mat** - preprocessed force data transformed into Newtons (from the ITI onset to the reward onset). Each trial is stored. The data is separated into left and right hands, as well as the time measure (unadjusted).
+
++ **slope_preprocessed.mat** - preprocessed slope data (from the ITI onset to the reward onset). Each trial is stored. The data is separated into left and right hands, as well as the time measure (unadjusted).
+
++ **slope_preprocessed_newton.mat** - preprocessed slope data transformed into Newtons (from the ITI onset to the reward onset). Each trial is stored. The data is separated into left and right hands, as well as the time measure (unadjusted).
+
++ **sub-xx_responses.pdf** - visualized subject specific trials. All preprocessed trials are presented (from stimulus onset + 2 sec). The top row displays data in arbitrary units, the lower row - the same output but in Newtons. The suptitle shows group, participant id, task run, trial and the requested response. Blue colored line - force in the task requested hand. Light blue colored line - the opposite hand. Pink colored line - force changes (slope) for the blue colored line (not calculated in NoGo trials). Black dashed line - minimum threshold. X - stimulus onset. Red dot - RT_init. Light purple dot - RT99. Dark purple dot - RT95. Yellow dot - maximum slope. Green dot - maximum force. **Recommended: inspect each individual trial as no pipeline is fail proof.**
